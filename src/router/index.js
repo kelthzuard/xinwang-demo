@@ -5,7 +5,8 @@ import VModal from 'vue-js-modal'
 
 Vue.use(VModal, {
   dialog: true,
-  dynamic: true
+  dynamic: true,
+  injectModalsContainer: true
 })
 
 Vue.use(Router)

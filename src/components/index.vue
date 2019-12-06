@@ -2,36 +2,42 @@
   <div class="background">
    <div class="content">
     <div class="tag">
-      <span class="title">唇语识别平台</span>
+      <div class="title">
+        <img class="logo" src="@/assets/logo.png">
+        <div>观音监控平台</div>
+      </div>
       <span>开始识别</span>
       <span>演示视频</span>
       <span>联系我们</span>
     </div>
-    <block></block>
+    <block ref="block"></block>
     <div class="exTitle">
     演示范例
     </div>
     <div class="example">
-      <div class="item">
-        <img src="@/assets/ex1.jpg">
+      <div class="item" @click="changeType('normal')">
+        <video src="@/assets/normal.mp4" autoplay loop muted></video>
         <div class="cover">
-          <img src="@/assets/play.svg">
+          <img v-if="!(type == 'normal')" src="@/assets/play.svg">
+          <img v-if="(type == 'normal')" src="@/assets/pause.svg">
         </div>
-        <div class="word">自然动态环境下的唇语识别效果测试</div>
+        <div class="word">正常检测无敏感词</div>
       </div>
-      <div class="item">
-        <img src="@/assets/ex1.jpg">
+      <div class="item" @click="changeType('warn')">
+        <video src="@/assets/warn.mp4" autoplay loop muted></video>
         <div class="cover">
-          <img src="@/assets/play.svg">
+          <img v-if="!(type == 'warn')" src="@/assets/play.svg">
+          <img v-if="(type == 'warn')" src="@/assets/pause.svg">
         </div>
-        <div class="word">自然动态环境下的唇语识别效果测试</div>
+        <div class="word">险情发现预警</div>
       </div>
-      <div class="item">
-        <img src="@/assets/ex1.jpg">
+      <div class="item" @click="changeType('poten')">
+        <video src="@/assets/poten.mp4" autoplay loop muted></video>
         <div class="cover">
-          <img src="@/assets/play.svg">
+          <img v-if="!(type == 'poten')" src="@/assets/play.svg">
+          <img v-if="(type == 'poten')" src="@/assets/pause.svg">
         </div>
-        <div class="word">自然动态环境下的唇语识别效果测试</div>
+        <div class="word">呼救信息预警</div>
       </div>
     </div>
    </div>
@@ -43,12 +49,18 @@ export default {
   name: 'index',
   data () {
     return {
-      
+      type: 'normal'
     }
   },
   components: {
     block
-  }
+  },
+  methods: {
+    changeType (type) {
+      this.type = type
+      this.$refs.block.changeType(type)
+    }
+  },
 }
 </script>
 
@@ -66,13 +78,20 @@ export default {
     height:100%;
     overflow: hidden;
     .tag{
-      padding: 35px 0 35px 150px;
+      padding: 10px 0 35px 150px;
+      .logo{
+        width: 80px;
+
+      }
       .title{
         font-size: 22px;
         font-weight: 600;
         color: #000;
+        display: inline-block;
+        margin-right: 35px;
       }
       span{
+        display: inline-block;
         margin-right: 35px;
         color: #999;
         font-size: 14px;
@@ -90,7 +109,7 @@ export default {
         width: 220px;
         margin-right: 120px;
         position: relative;
-        img{
+        video{
           width: 100%;
           height: 150px;
         }

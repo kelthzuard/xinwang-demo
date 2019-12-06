@@ -1,21 +1,28 @@
 <template>
     <div :class="{'blockGone': recording, 'block': true}">
         <div class="desc">
-            <span v-if="video">录像中...</span>
-            <span v-if="imgSq">处理图像序列中...</span>
+            <div v-if="video">录像中...</div>
+            <div v-if="imgSq" style="display: flex;align-items: center">
+                <div>处理图像序列中...</div>
+                <div class="button" @click="hideImg">
+                    生成结果
+                </div>
+            </div>
         </div>
         <div :class="{'wordsGone': recording, 'words': true}">
-            <div class="big">开始识别</div>
-            <div class="small">立即录制视频</div>
+            <div class="big">唇语识别</div>
+            <div class="small">点击运行</div>
             <div class="button" @click="startRecord">
                 <img src="@/assets/play.svg">
             </div>
         </div>
         <div :class="{'videoActivate': video, 'video': true}" id="videoContainer">
-            <video v-show="video" id="video" src="@/assets/warn.mp4" control="controls" width="500px" height="260px" @ended="showImglist"></video>
+            <video v-if="type == 'normal'" v-show="video" id="video" src="@/assets/normal.mp4" control="controls" width="500px" height="260px" @ended="showImglist"></video>
+            <video v-if="type == 'warn'" v-show="video" id="video" src="@/assets/warn.mp4" control="controls" width="500px" height="260px" @ended="showImglist"></video>
+            <video v-if="type == 'poten'" v-show="video" id="video" src="@/assets/poten.mp4" control="controls" width="500px" height="260px" @ended="showImglist"></video>
         </div>
         <div class="imgList" ref="imgList">
-            <div v-for="(item,index) in imgList" :key="index" class="item">
+            <div v-for="(item,index) in imgList" :key="index" class="item" @click="showImgModal(index)" @mouseover="imgHover(index)" @mouseout="imgOut(index)">
                 <img :src="item">
             </div>
         </div>
@@ -36,14 +43,17 @@
             <canvas id='canvas' width='400' height='300'></canvas>
         </div>
         <result-modal :type="modalType"></result-modal>
+        <img-modal :imgData="imgData"></img-modal>
     </div>
 </template>
 <script>
 import resultModal from "./resultModal.vue"
+import imgModal from "./imgModal.vue"
 export default {
     name: 'block',
     components: {
-        resultModal
+        resultModal,
+        imgModal
     },
     data() {
         return {
@@ -54,10 +64,54 @@ export default {
             interval: null,
             imgSq: false,
             loading: false,
-            modalType: 'poten'
+            modalType: 'normal',
+            normalList: [],
+            imgData: null,
+            warnList: [],
+            potenList: [],
+            type: 'normal'
         }
     },
+    mounted() {
+        this.initData ('normal')
+        // this.changeData(this.normalList)
+        this.imgList = this.normalList
+        this.videoUrl = 'normal'
+    },
     methods: {
+        initData (type) {
+            for (let i = 1; i < 8; i ++) {
+                this.normalList.push(require('@/assets/normal/'+ i +'.png'))
+                this.warnList.push(require('@/assets/warn/'+ i + '.png'))
+                this.potenList.push(require('@/assets/poten/'+ i + '.png'))
+            }
+        },
+        changeType (type) {
+            switch (type){
+                case 'normal': this.imgList = this.normalList;break;
+                case 'warn': this.imgList = this.warnList;break;
+                case 'poten': this.imgList = this.potenList;break;
+            }
+            this.type = type;
+            this.modalType = type
+        },
+        changeData (arr) {
+            for (let i = 0; i < arr.length; i ++) {
+                this.$set(this.imgList, i, arr[i])
+            }
+        },
+        showImgModal (index) {
+            this.$modal.show('img-modal')
+            this.imgData = this.normalList[index]
+        },
+        imgHover (index) {
+            var node = this.$refs.imgList.childNodes[index]
+            node.style.transform = 'scale(1.2)'
+        },
+        imgOut (index) {
+            var node = this.$refs.imgList.childNodes[index]
+            node.style.transform = 'scale(1)'
+        },
         startRecord () {
             const self = this
             this.recording = true
@@ -70,54 +124,18 @@ export default {
             const self = this
             var video = document.getElementById('video')
             video.play()
-            // navigator.getMedia = navigator.getUserMedia ||
-            //                     navagator.webkitGetUserMedia ||
-            //                     navigator.mozGetUserMedia ||
-            //                     navigator.msGetUserMedia
-
-            // navigator.getMedia({
-            //     video: true, //使用摄像头对象
-            //     audio: false  //不适用音频
-            // }, function(strem){
-            //     self.strem = strem
-            //     var video = document.getElementById('video')
-            //     video.srcObject = strem
-            //     video.play()
-            //     self.interval = setInterval(()=>{
-            //         self.takeShot ()
-            //     }, 100)
-            // }, function(error) {
-            //     //error.code
-            //     console.log(error);
-            // })
         },
-        // takeShot () {
-        //     if (this.imgList.length >= 7) {
-        //         console.log(this.interval)
-        //         clearInterval(this.interval)
-        //         this.showImglist ()
-        //     }
-        //     var video = document.getElementById('video')
-        //     canvas.getContext('2d').drawImage(video, 0, 0, 400, 300)
-        //     this.imgList.push(canvas.toDataURL("image/png"))
-        // },
         showImglist () {
-            const self = this
-            var video = document.getElementById('video')
-            document.getElementById('videoContainer').removeChild(video)
             this.video = false
-
-            // this.imgSq = true
-            // var imgList = this.$refs.imgList
-            // for (let i = 0; i < imgList.childNodes.length; i ++) {
-            //     setTimeout (function(){
-            //         var node = imgList.childNodes[i]
-            //         node.style.left = i*110 + '%'
-            //     }, 1500)
-            // }
-            // setTimeout (function () {
-            //     self.hideImg ()
-            // }, 1000)
+            this.imgSq = true
+            var imgList = this.$refs.imgList
+            for (let i = 0; i < imgList.childNodes.length; i ++) {
+                setTimeout (function(){
+                    var node = imgList.childNodes[i]
+                    node.style.left = (i+1)*125 + '%'
+                    node.style.opacity = 1
+                }, 1500)
+            }
         },
         hideImg () {
             const self = this
@@ -125,12 +143,13 @@ export default {
             for (let i = 0; i < imgList.childNodes.length; i ++) {
                 setTimeout (function(){
                     var node = imgList.childNodes[i]
-                    node.style.left = i*810 + '%'
+                    node.style.left = (i+1)*1810 + 'px'
+                    node.style.opacity = 0
                     if (i == (imgList.childNodes.length - 1)) {
                         self.imgSq = false
                         self.showLoading ()
                     }
-                }, 2000)
+                }, 1000)
             }
         },
         showLoading () {
@@ -155,7 +174,7 @@ export default {
     border-radius: 0 !important;
 }
 .wordsGone{
-    transform: translate(-50px, -50%) !important;
+    transform: translate(-500px, -50%) !important;
     opacity: 0;
 }
 .videoActivate{
@@ -164,16 +183,18 @@ export default {
 .imgList{
     position: absolute;
     top: 50%;
-    left: -200px;
-    width: 200px;
-    height: 150px;
+    left: -150px;
+    width: 11%;
+    height: 100px;
     transform: translateY(-50%);
     .item{
-        transition: 1s all ease;
+        transition: 1s all ease,0.3s transform ease;
         position: absolute;
         top: 0;
         left: 0;
         width: 100%;
+        opacity: 0;
+        cursor: pointer;
         img{
             width: 100%;
             height: 100%;
@@ -183,7 +204,7 @@ export default {
 .block{
     width: 100%;
     height: 300px;
-    background: rgb(206, 199, 191);
+    background: rgb(92, 136, 197);
     margin-left: 150px; 
     border-radius: 30px;
     position: relative;
@@ -194,7 +215,22 @@ export default {
         top: 30px;
         left: 80px;
         font-size: 20px;
-
+        .button{
+            width: 70px;
+            height: 30px;
+            background: #999;
+            color: #fff;
+            border-radius: 30px;
+            line-height: 30px;
+            text-align: center;
+            margin: 0 20px;
+            transition: 0.5s all ease;
+            cursor: pointer;
+            font-size: 14px;
+        }
+        .button:hover{
+            background: #333;
+        }
     }
     .video{
         width: 500px;
